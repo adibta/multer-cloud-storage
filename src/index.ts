@@ -29,6 +29,10 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 			return undefined;
 	}
 
+	getStorageBucket( req, file, cb ) {
+		cb(null, '');
+	}
+
 	private setBlobFile( req, file ) {
 		this.getDestination(req, file, (err, destination) => {
 			if (err) {
@@ -62,12 +66,28 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 		return true;
 	}
 
-	constructor(opts?: StorageOptions & { bucket?: string, destination?: any, filename?: any, hideFilename?: boolean, contentType?: ContentTypeFunction }) {
+	private setStorageBucket(req, file) {
+		this.getStorageBucket(req, file, (err, bucket) => {
+
+			if (!bucket) {
+				throw new Error('You have to specify bucket for Google Cloud Storage to work.');
+			} else {
+				this.gcsBucket = this.gcsStorage.bucket(bucket);
+			}
+		})
+		return true
+	}
+
+	constructor(opts?: StorageOptions & { bucket?: any, destination?: any, filename?: any, hideFilename?: boolean, contentType?: ContentTypeFunction }) {
 		opts = opts || {};
 
 		typeof opts.destination === 'string' ? 
 			this.getDestination = function (req, file, cb) { cb(null, opts.destination) } 
 			: this.getDestination = opts.destination || this.getDestination;
+
+		typeof opts.bucket === 'string' ? 
+		this.getStorageBucket = function (req, file, cb) { cb(null, opts.bucket) } 
+		: this.getStorageBucket = opts.bucket || this.getStorageBucket;
 		
 		if (opts.hideFilename) {
 			this.getFilename = function (req, file, cb) { cb(null, `${uuid()}`) };
@@ -83,13 +103,8 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 				:	this.getContentType = opts.contentType || this.getContentType;
 		}
 
-		opts.bucket = opts.bucket || process.env.GCS_BUCKET || null;
 		opts.projectId = opts.projectId || process.env.GCLOUD_PROJECT || null;
 		opts.keyFilename = opts.keyFilename || process.env.GCS_KEYFILE || null;
-
-		if (!opts.bucket) {
-			throw new Error('You have to specify bucket for Google Cloud Storage to work.');
-		}
 
 		if (!opts.projectId) {
 			throw new Error('You have to specify project id for Google Cloud Storage to work.');
@@ -104,13 +119,11 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 			keyFilename: opts.keyFilename
 		});
 
-		this.gcsBucket = this.gcsStorage.bucket(opts.bucket);
-
 		this.options = opts;
 	}
 
 	_handleFile = (req, file, cb) => {
-		if(this.setBlobFile( req, file )) {
+		if(this.setBlobFile( req, file ) && this.setStorageBucket(req, file)) {
 			var blobName = this.blobFile.destination + this.blobFile.filename;
 			var blob = this.gcsBucket.file(blobName);
 
@@ -145,7 +158,7 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 		}
 	}
 	_removeFile =  (req, file, cb) => {
-		if (this.setBlobFile( req, file )) {
+		if (this.setBlobFile( req, file ) &&  this.setStorageBucket(req, file)) {
 			var blobName = this.blobFile.destination + this.blobFile.filename;
 			var blob = this.gcsBucket.file(blobName);
 			blob.delete();
@@ -153,7 +166,7 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 	};
 }
 
-export function storageEngine(opts?: StorageOptions & { bucket?: string; destination?: any; filename?: any; hideFilename?: boolean; contentType?: ContentTypeFunction }) {
+export function storageEngine(opts?: StorageOptions & { bucket?: any; destination?: any; filename?: any; hideFilename?: boolean; contentType?: ContentTypeFunction }) {
 	return new MulterGoogleCloudStorage(opts);
 }
 

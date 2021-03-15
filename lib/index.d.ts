@@ -1,5 +1,5 @@
 import multer = require('multer');
-import { StorageOptions, PredefinedAcl } from '@google-cloud/storage';
+import { StorageOptions } from '@google-cloud/storage';
 import { Request } from 'express';
 export default class MulterGoogleCloudStorage implements multer.StorageEngine {
     private gcsBucket;
@@ -9,10 +9,11 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
     getFilename(req: any, file: any, cb: any): void;
     getDestination(req: any, file: any, cb: any): void;
     getContentType(req: any, file: any): any;
+    getStorageBucket(req: any, file: any, cb: any): void;
     private setBlobFile;
+    private setStorageBucket;
     constructor(opts?: StorageOptions & {
-        acl?: PredefinedAcl;
-        bucket?: string;
+        bucket?: any;
         destination?: any;
         filename?: any;
         hideFilename?: boolean;
@@ -22,7 +23,7 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
     _removeFile: (req: any, file: any, cb: any) => void;
 }
 export declare function storageEngine(opts?: StorageOptions & {
-    bucket?: string;
+    bucket?: any;
     destination?: any;
     filename?: any;
     hideFilename?: boolean;

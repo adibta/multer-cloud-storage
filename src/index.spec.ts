@@ -24,11 +24,6 @@ describe('MulterGoogleCloudStorage checks', () => {
     expect(cloudStorage(opts))
       .toBeInstanceOf(MulterGoogleCloudStorage)
   })
-    
-  test('Constructor shall throw error when missing bucket', () => {
-    const noBucket = { projectId: 'test', keyFilename: './test' };
-    expect(() => { cloudStorage(noBucket) }).toThrow();
-  })
 
   test('Constructor shall throw error when missing projectId', () => {
     const noProj = { bucket: 'test', keyFilename: './test' };
