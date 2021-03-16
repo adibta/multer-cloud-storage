@@ -1,5 +1,5 @@
 import multer = require('multer');
-import { StorageOptions } from '@google-cloud/storage';
+import { PredefinedAcl, StorageOptions } from '@google-cloud/storage';
 import { Request } from 'express';
 export default class MulterGoogleCloudStorage implements multer.StorageEngine {
     private gcsBucket;
@@ -13,6 +13,7 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
     private setBlobFile;
     private setStorageBucket;
     constructor(opts?: StorageOptions & {
+        acl?: PredefinedAcl;
         bucket?: any;
         destination?: any;
         filename?: any;

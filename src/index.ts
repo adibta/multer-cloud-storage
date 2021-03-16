@@ -78,7 +78,7 @@ export default class MulterGoogleCloudStorage implements multer.StorageEngine {
 		return true
 	}
 
-	constructor(opts?: StorageOptions & { bucket?: any, destination?: any, filename?: any, hideFilename?: boolean, contentType?: ContentTypeFunction }) {
+	constructor(opts?: StorageOptions & { acl?: PredefinedAcl, bucket?: any, destination?: any, filename?: any, hideFilename?: boolean, contentType?: ContentTypeFunction }) {
 		opts = opts || {};
 
 		typeof opts.destination === 'string' ? 
